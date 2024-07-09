@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -17,5 +18,117 @@ model projets {
   projet_id    String  @id @default(auto()) @map("_id") @db.ObjectId
   title        String 
   description  String ?
+  students String
+  studentId String[] @db.ObjectId
+  student students[] @relation(fields: [studentId], references: [student_id])
+}
 
+model fatures {
+  invoice_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  amount String
+  status Boolean 
+  due_date DateTime
+  statuts String
+  date_issued DateTime @default(now())
+  tax Int
+  author students @relation(fields: [authorId], references: [student_id])
+  authorId String @db.ObjectId
+}
+
+model users {
+  user_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String 
+  email String @unique
+  password String
+  age Int?
+  role Role @default(USER)
+  student students?
+}
+
+model students {
+  student_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  courses String?
+  quizzes String?
+  exercices String?
+  certifications String?
+  age Int
+  matricule String
+  cni String
+  adresse String
+  photo String
+  phone Int
+  registration_date DateTime @default(now())
+  tutor String
+  school String
+  school_level String
+  status String
+  users users @relation(fields: [usersId], references: [user_id])
+  usersId String @unique @db.ObjectId
+  projetId String[] @db.ObjectId
+  projet projets[] @relation(fields: [projetId], references: [projet_id])
+  quizzeId String[] @db.ObjectId
+  quizze quizzes[] @relation(fields: [quizzeId], references: [quiz_id])
+  cour cours[] @relation(fields: [courId], references: [course_id])
+  courId String[] @db.ObjectId
+  exerciceId String[] @db.ObjectId
+  exercice exercices[] @relation(fields: [exerciceId], references: [exercice_id])
+  certificationId String[] @db.ObjectId
+  certification certification[] @relation(fields: [certificationId], references: [certification_id])
+  facture fatures[]
+
+}
+
+model quizzes {
+  quiz_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  questions String
+  passing_score String
+  studenId String[] @db.ObjectId
+  studen students[] @relation(fields: [studenId], references: [student_id])
+  author cours @relation(fields: [authorId], references: [course_id])
+  authorId String @db.ObjectId
+  exercice exercices?
+}
+
+model exercices {
+  exercice_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  title String  
+  description String
+  due_date DateTime
+  submissions String
+  author cours @relation(fields: [authorId], references: [course_id])
+  authorId String @db.ObjectId
+  studentId String[] @db.ObjectId
+  student students[] @relation(fields: [studentId], references: [student_id])
+  quizze quizzes  @relation(fields: [quizzeId], references: [quiz_id])
+  quizzeId String @unique @db.ObjectId
+}
+
+model certification {
+  certification_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  description String
+  date_issued DateTime
+ studentId String[] @db.ObjectId
+  student students[] @relation(fields: [studentId], references: [student_id])
+}
+
+model cours {
+  course_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  description String
+  content String
+  quizzes String
+  exercices String
+  price Int
+  exercice exercices[]
+  quizz quizzes[]
+  apprenant students[] @relation(fields: [aprenantId], references: [student_id])
+  aprenantId String[] @db.ObjectId
+
+}
+
+enum Role{
+    USER
+    ADMIN
+    
 }

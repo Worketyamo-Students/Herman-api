@@ -2,23 +2,25 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { HttpCode } from "../src/core/constants";
 // import { Console } from "console";
-
+import bcrypt  from  "bcrypt" ;
+import nodemailer from "nodemailer"
+import sendMailer from "../src/mail/sendmail";
 const prisma = new PrismaClient()
 
 const controllers = {
-    getALLProjet: async(req: Request, res: Response) =>{
+    getALLUser: async(req: Request, res: Response) =>{
         try {
-            const tout = await prisma.projets.findMany();
+            const tout = await prisma.users.findMany();
             res.json(tout).status(HttpCode.OK)
         } catch (error) {
            console.error(error) 
         }
     },
-    getAoneProjet: async (req: Request, res: Response) =>{
+    getOneUser: async (req: Request, res: Response) =>{
         const {id} = req.params
-        const facture = await prisma.projets.findFirst({
+        const facture = await prisma.users.findFirst({
             where: {
-                projet_id: id
+                user_id: id
             }
             
         })
@@ -28,51 +30,67 @@ const controllers = {
         await res.json(facture).status(HttpCode.OK)
     },
      
-    postProjet: async ( req: Request, res: Response) =>{
+   postuser: async ( req: Request, res: Response) =>{
         
             try {
-                 const {title, description} = req.body;
-                 const result = await prisma.projets.create({
-            data: {
-                title,
-                description
-            }
+            const {name, email, password, age }=req.body
+            const crypt =   await bcrypt.hash ( password ,  10 ) ;
+            const result= await prisma.users.create({
+                data:{
+                    name,
+                    email ,
+                    password :crypt,
+                    age 
+                }
             })
-            await res.json(result).status(HttpCode.OK)
+             await sendMailer(email,"bonjour", "Ceci est un e-mail de test envoyé à l'aide de Nodemailer pour votre bien être."  )
+            
+            
+             await res.json(result).status(HttpCode.OK)
             } catch (error) {
                console.error(error) 
             }
         
-    },
-    putProjet: async (req:Request, res:Response) =>{
+    }, 
+    putUser: async (req:Request, res:Response) =>{
         try {
             const { id } = req.params
-            const { title,description} = req.body
-            const projets = await prisma.projets.update({
-                where: { projet_id: id},
+            const {name, email, age, }=req.body
+            const users = await prisma.users.update({
+                where: { user_id: id},
                 data: {
-                    title,
-                    description
+                   name,
+                   email,
+                   age
                 }
             })
-            await res.json(projets).status(HttpCode.OK)
+            await res.json(users).status(HttpCode.OK)
         } catch (error) {
             console.error(error);
             
         }
     },
-    deleteProjet: async (req:Request, res:Response) =>{
+    deleteUser: async (req:Request, res:Response) =>{
         try {
             const { id } = req.params
-            const projets = await prisma.projets.delete({
-                where: { projet_id: id},
+            const users = await prisma.users.delete({
+                where: { user_id: id},
 
             })
             if (!id){
                  await res.json('id').status(HttpCode.NOT_FOUND);
                 }
-            await res.json("msg: le projet a étè supprimer"+ projets).status(HttpCode.OK)
+            await res.json("msg: l'user a étè supprimer"+ users).status(HttpCode.OK)
         } catch (error) {
+            console.error(error);
+            
+        }
+    },
+    deleteAllUser: async (req:Request, res:Response) =>{
+        try {
+             await prisma.users.deleteMany()   
+            res.json("tout le monde est partie")
+           } catch (error) {
             console.error(error);
             
         }
